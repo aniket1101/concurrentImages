@@ -10,7 +10,7 @@ blur_opt_exprmt: BlurExprmt.o Utils.o Picture.o PicProcess.o ThreadPool.o
 	gcc sod_118/sod.c BlurExprmt.o Utils.o Picture.o PicProcess.o ThreadPool.o -I sod_118 -lm -lpthread -o blur_opt_exprmt
 
 picture_compare: Compare.o Utils.o Picture.o ThreadPool.o
-	gcc sod_118/sod.c Compare.o Utils.o Picture.o ThreadPool.o -I sod_118 -lm -o picture_compare
+	gcc sod_118/sod.c Compare.o Utils.o Picture.o ThreadPool.o -I sod_118 -lm -lpthread -o picture_compare
 
 ThreadPool.o: ThreadPool.h ThreadPool.c
 
