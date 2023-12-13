@@ -165,13 +165,14 @@
     overwrite_picture(pic, &tmp);
   }
 
+  // Blur an individual pixel (and hence its surrounding area)
   void blur_pixel(struct pic_info *info) {
     struct pixel pixel;  
     int total_red = 0;
     int total_green = 0;
     int total_blue = 0;
 
-    // Apply loop to area around pixel to check rgb values
+    // Apply loop to area around pixel to check and sum rgb values
     for(int n = -1; n <= 1; n++){
       for(int m = -1; m <= 1; m++){
         pixel = get_pixel(info->tmp, info->i+n, info->j+m);
@@ -193,8 +194,10 @@
     free(info);
   }
   
+  /* Create a new thread according to specified parameters and passing in a
+     pic_info as the argument for the thread. */
   bool new_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j) {
-    struct pic_info *info = malloc(sizeof(struct pic_info));
+    struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
     // Assign values to new pic_info
     info->pic = pic;
