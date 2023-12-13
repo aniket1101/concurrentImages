@@ -281,30 +281,32 @@
   /* BLUR FUNCTIONS */
   
   void parallel_blur_picture(struct picture *pic){
-    /* make temporary copy of picture to work from */
+    // make new temporary picture to work in
     struct picture tmp;
     tmp.img = copy_image(pic->img);
     tmp.width = pic->width;
     tmp.height = pic->height;
+    
+    // Initialise thread pool
+    struct t_pool pool;
+    thread_pool_init(&pool);
 
-    /* Initialise new thread pool. */
-    struct t_pool thread_pool;
-    thread_pool_init(&thread_pool);
+    // Iterate over each pixel in the picture, except boundary pixels
+    for(int i = 1; i < tmp.width - 1; i++){
+      for(int j = 1; j < tmp.height - 1; j++){  
+        pthread_t thread;
 
-    /* iterate over each pixel in the picture (ignoring boundary pixels) */
-    for (int i = 1; i < tmp.width - 1; i++) {
-        for (int j = 1; j < tmp.height - 1; j++) {
-            pthread_t thread;
-            /* Creates a new thread and will keep attempting to by calling try_join_threads which removes any terminated threads. */
-            while (!new_pixel_thread(&thread, pic, &tmp, i, j)) {
-                tryjoin_threads(&thread_pool);
-            }
-            add_thread_to_pool(thread, &thread_pool);
+        // Check that a new thread thread can be created
+        while(!new_pixel_thread(&thread, pic, &tmp, i, j)) {
+          tryjoin_threads(&pool);
         }
-    }
-    threads_join(&thread_pool);
+        add_thread_to_pool(thread, &pool);
+      }
+    } 
 
-    /* Temporary picture clean-up */
+    threads_join(&pool);   
+    
+    // clean-up the temporary picture
     clear_picture(&tmp);
   }
 
