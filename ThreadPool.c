@@ -48,9 +48,6 @@ void remove_node(struct node *node) {
 
     // Assign the next node's previous node to the current node's previous node
     node->next->prev = node->prev;
-
-    // Free resources
-    free(node);
 }
 
 // Add a thread to a thread pool
@@ -67,6 +64,7 @@ bool add_thread_to_pool(pthread_t thread, struct t_pool *pool) {
     node->prev = pool->tail->prev;
     node->next = pool->tail;
     pool->tail->prev = node;
+
     return true;
 }
 
@@ -101,7 +99,7 @@ void tryjoin_threads(struct t_pool *pool) {
         curr = curr->next;
 
         // Perform a join and check thread's successful termination
-        if (pthread_tryjoin_np(prev->thread, NULL) == false) {
+        if (pthread_tryjoin_np(prev->thread, NULL) == 0) {
             //Remove the current node being checked from the pool and free it
             remove_node(prev);
             free(prev);

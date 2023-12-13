@@ -196,9 +196,9 @@
     set_pixel(pic, i, j, &pixel);
   }
 
+  /* Blurs a pixel and then frees it. */
   void blur_and_free_pixel(struct pic_info *info) {
     blur_pixel(info);
-    // Free resources
     free(info);
   }
   
