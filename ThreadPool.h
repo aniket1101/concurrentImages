@@ -4,21 +4,24 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-// Represents a thread pool using a linked-list as a medium
-struct t_pool {
-    struct node *head; /* Head of the linked list. */
-    struct node *tail; /* Tail of the linked list. */
+/* Linked List structure for the thread pool. */
+struct thread_pool 
+{
+    struct node *head;
+    struct node *tail;
 };
 
-struct node {
-    struct node *prev; /* Previous node in the linked list. */
-    struct node *next; /* Next node in the linked list. */
-    pthread_t thread;  /* Thread beloning to the current node. */
+/* Node structure for the thread pool. */
+struct node 
+{
+    struct node *prev;
+    struct node *next;
+    pthread_t thread;
 };
 
-bool thread_pool_init(struct t_pool *t_pool);
-struct node *create_node(pthread_t thread);
+bool initialise_thread_pool(struct thread_pool *thread_pool);
+struct node *new_node(pthread_t thread);
+bool add_to_thread_pool(struct thread_pool *thread_pool, pthread_t thread);
 void remove_node(struct node *node);
-bool add_thread_to_pool(pthread_t thread, struct t_pool *pool);
-void threads_join(struct t_pool *pool);
-void tryjoin_threads(struct t_pool *pool);
+void join_threads(struct thread_pool *thread_pool);
+void try_join_threads(struct thread_pool *thread_pool);

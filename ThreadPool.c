@@ -5,104 +5,82 @@
 #include <stdbool.h>
 #include "ThreadPool.h"
 
-// Initalise a thread pool by assigning basic members
-bool thread_pool_init(struct t_pool *t_pool) {
-    t_pool->head = (struct node*) malloc(sizeof(struct node));
-    t_pool->tail = (struct node*) malloc(sizeof(struct node));
-
-    // Check that neither malloc failed and exit if any did
-    if (t_pool->head == NULL || t_pool->tail == NULL) {
+/* Initialise the thread pool. */
+bool initialise_thread_pool(struct thread_pool *thread_pool)
+{
+    thread_pool->head = malloc(sizeof(struct node));
+    thread_pool->tail = malloc(sizeof(struct node));
+    if (thread_pool->head == NULL || thread_pool->tail == NULL)
         return false;
-    }
 
-    /* Return a linked list with a head, a tail and no other nodes
-       Ensure that the head can have no node before it and the tail
-       can have no node after. */
-
-    t_pool->head->prev = NULL;
-    t_pool->head->next = t_pool->tail;
-    t_pool->tail->prev = t_pool->head;
-    t_pool->tail->next = NULL;
+    thread_pool->head->prev = NULL;
+    thread_pool->head->next = thread_pool->tail;
+    thread_pool->tail->prev = thread_pool->head;
+    thread_pool->tail->next = NULL;
 
     return true;
 }
 
-// Create a new node and assign its thread to the thread passed in
-struct node *create_node(pthread_t thread) {
-    struct node *node = (struct node*) malloc(sizeof(struct node));
-
-    // Check that malloc has not failed and return a NULL node if it has
-    if (node == NULL) {
+/* Create a new node and set the thread field to the passed in thread. */
+struct node *new_node(pthread_t thread) 
+{
+    struct node *node = malloc(sizeof(struct node));
+    if (node == NULL)
         return NULL;
-    }
 
     node->thread = thread;
     return node;
 }
 
-// Remove a specified node from the thread pool
-void remove_node(struct node *node) {
-
-    // Assign the previous node's next node to the current node's next node
-    node->prev->next = node->next;
-
-    // Assign the next node's previous node to the current node's previous node
-    node->next->prev = node->prev;
-}
-
-// Add a thread to a thread pool
-bool add_thread_to_pool(pthread_t thread, struct t_pool *pool) {
-    struct node *node = create_node(thread);
-
-    // Check if the node is null (malloc failed)
-    if (node == NULL) {
+/* Add a new node to the back of the thread pool. */
+bool add_to_thread_pool(struct thread_pool *thread_pool, pthread_t thread)
+{
+    struct node *node = new_node(thread);
+    if (node == NULL)
         return false;
-    }
-
-    // Add node containing thread to the back of the list
-    pool->tail->prev->next = node;
-    node->prev = pool->tail->prev;
-    node->next = pool->tail;
-    pool->tail->prev = node;
-
+    
+    thread_pool->tail->prev->next = node;
+    node->prev = thread_pool->tail->prev;
+    node->next = thread_pool->tail;
+    thread_pool->tail->prev = node;
     return true;
 }
 
+/* Remove a node from the thread pool. */
+void remove_node(struct node *node) 
+{
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+}
 
-void threads_join(struct t_pool *pool) {
+/* Iterate through all threads in the thread pool and join them back to main. */
+void join_threads(struct thread_pool *thread_pool)
+{
     struct node *prev = NULL;
-    struct node *curr = pool->head;
-
-    // Iterate through all threads until hitting a NULL
+    struct node *curr = thread_pool->head;
     while (curr != NULL) {
         prev = curr;
         curr = curr->next;
-
-        // The current node being checked is not the head or tail  
-        if (prev != pool->head && prev != pool->tail) {
-            // Waits for a thread to terminate and then detaches the thread
+        if (prev != thread_pool->head && prev != thread_pool->tail) {
             pthread_join(prev->thread, NULL);
         }
-
-        // Free resources
         free(prev);
     }
+        
 }
 
-void tryjoin_threads(struct t_pool *pool) {
+/* Iterate through all threads in the thread pool and if any have terminated, join them to main, remove
+ * from the linked list and free the structure. This allows for more threads to then be created. */
+void try_join_threads(struct thread_pool *thread_pool) 
+{
     struct node *prev = NULL;
-    struct node *curr = pool->head->next;
-
-    // Iterate through all nodes in the pool
-    while (curr != pool->tail) {
+    struct node *curr = thread_pool->head->next;
+    while (curr != thread_pool->tail) {
         prev = curr;
         curr = curr->next;
-
-        // Perform a join and check thread's successful termination
         if (pthread_tryjoin_np(prev->thread, NULL) == 0) {
-            //Remove the current node being checked from the pool and free it
             remove_node(prev);
             free(prev);
         }
     }
-} 
+}
