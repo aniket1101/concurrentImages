@@ -304,9 +304,8 @@
 
     threads_join(&pool);   
     
-    // clean-up the old picture and replace with new picture
+    // clean-up the temporary picture
     clear_picture(&tmp);
-    overwrite_picture(pic, &tmp);
   }
 
   /* Blurs the picture by creating a thread for every column. */
