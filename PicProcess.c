@@ -194,7 +194,11 @@
 
     // Set average rgb values to complete pixel blur
     set_pixel(pic, i, j, &pixel);
+  }
 
+  blur_and_free_pixel(struct pic_info *info) {
+    blur_pixel(info);
+    
     // Free resources
     free(info);
   }
@@ -245,4 +249,5 @@
     
     // clean-up the old picture and replace with new picture
     clear_picture(&tmp);
+    overwrite_picture(pic, &tmp);
   }
