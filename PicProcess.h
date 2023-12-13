@@ -3,6 +3,7 @@
 
 #include "Picture.h"
 #include "Utils.h"
+#include <pthread.h>
 
  struct pic_info {
   struct picture *pic;

@@ -206,7 +206,7 @@
     info->j = j;
 
     // Check that the new thread can be created properly and exit otherwise
-    if (pthread_create(thread, NULL, blur_pixel, info) != 0) {
+    if (pthread_create(thread, NULL, (void *(*) (void *)) blur_pixel, info) != 0) {
       // Free resources
       free(info);
       return false;
@@ -231,10 +231,10 @@
         pthread_t thread;
 
         // Check that a new thread thread can be created
-        while(!new_thread(thread, pic, tmp, i, j)) {
+        while(!new_thread(&thread, pic, tmp, i, j)) {
           tryjoin_threads(pool);
         }
-        add_thread_to_pool(thread, pool);
+        add_thread_to_pool(&thread, pool);
       }
     } 
 
