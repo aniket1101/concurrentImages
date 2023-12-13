@@ -15,3 +15,8 @@ struct node {
 };
 
 bool thread_pool_init(struct t_pool *t_pool);
+struct node *create_node(pthread_t thread);
+void remove_node(struct node *node);
+bool add_thread_to_pool(pthread_t *thread, struct t_pool *pool);
+void threads_join(struct t_pool *pool);
+void tryjoin_threads(struct t_pool *pool);
