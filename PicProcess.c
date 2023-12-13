@@ -167,6 +167,11 @@
 
   // Blur an individual pixel (and hence its surrounding area)
   void blur_pixel(struct pic_info *info) {
+    struct picture *pic = info->pic;
+    struct picture *tmp = info->tmp;
+    int i = info->i;
+    int j = info->j;
+
     struct pixel pixel;  
     int total_red = 0;
     int total_green = 0;
@@ -175,7 +180,7 @@
     // Apply loop to area around pixel to check and sum rgb values
     for(int n = -1; n <= 1; n++){
       for(int m = -1; m <= 1; m++){
-        pixel = get_pixel(info->tmp, info->i+n, info->j+m);
+        pixel = get_pixel(tmp, i + n, j + m);
         total_red += pixel.red;
         total_green += pixel.green;
         total_blue += pixel.blue;
@@ -188,7 +193,7 @@
     pixel.blue = total_blue / BLUR_REGION_SIZE;
 
     // Set average rgb values to complete pixel blur
-    set_pixel(info->pic, info->i, info->j, &pixel);
+    set_pixel(pic, i, j, &pixel);
 
     // Free resources
     free(info);
@@ -216,31 +221,28 @@
   
   void parallel_blur_picture(struct picture *pic){
     // make new temporary picture to work in
-    struct picture *tmp;
-    tmp->img = copy_image(pic->img);
-    tmp->width = pic->width;
-    tmp->height = pic->height;
+    struct picture tmp;
+    init_picture_from_size(&tmp, pic->width, pic->height);
     
     // Initialise thread pool
-    struct t_pool *pool;
-    thread_pool_init(pool);
+    struct t_pool pool;
+    thread_pool_init(&pool);
 
     // iterate over each pixel in the picture, except boundary pixels
-    for(int i = 1 ; i < tmp->width - 1; i++){
-      for(int j = 1 ; j < tmp->height - 1; j++){  
+    for(int i = 1 ; i < tmp.width - 1; i++){
+      for(int j = 1 ; j < tmp.height - 1; j++){  
         pthread_t thread;
 
         // Check that a new thread thread can be created
-        while(!new_thread(&thread, pic, tmp, i, j)) {
-          tryjoin_threads(pool);
+        while(!new_thread(&thread, pic, &tmp, i, j)) {
+          tryjoin_threads(&pool);
         }
-        add_thread_to_pool(thread, pool);
+        add_thread_to_pool(thread, &pool);
       }
     } 
 
-    threads_join(pool);   
+    threads_join(&pool);   
     
     // clean-up the old picture and replace with new picture
-    clear_picture(pic);
-    overwrite_picture(pic, tmp);
+    clear_picture(&tmp);
   }

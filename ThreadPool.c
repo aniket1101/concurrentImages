@@ -101,7 +101,7 @@ void tryjoin_threads(struct t_pool *pool) {
         curr = curr->next;
 
         // Perform a join and check thread's successful termination
-        if (pthread_join(prev->thread, NULL) == false) {
+        if (pthread_tryjoin_np(prev->thread, NULL) == false) {
             //Remove the current node being checked from the pool and free it
             remove_node(prev);
             free(prev);
