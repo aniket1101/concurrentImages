@@ -234,7 +234,7 @@
         while(!new_thread(&thread, pic, tmp, i, j)) {
           tryjoin_threads(pool);
         }
-        add_thread_to_pool(&thread, pool);
+        add_thread_to_pool(thread, pool);
       }
     } 
 

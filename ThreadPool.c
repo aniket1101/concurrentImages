@@ -1,3 +1,8 @@
+#define _GNU_SOURCE
+#define __USE_GNU
+#include <stdlib.h>
+#include <pthread.h>
+#include <stdbool.h>
 #include "ThreadPool.h"
 
 // Initalise a thread pool by assigning basic members
@@ -49,7 +54,7 @@ void remove_node(struct node *node) {
 }
 
 // Add a thread to a thread pool
-bool add_thread_to_pool(pthread_t *thread, struct t_pool *pool) {
+bool add_thread_to_pool(pthread_t thread, struct t_pool *pool) {
     struct node *node = create_node(thread);
 
     // Check if the node is null (malloc failed)
@@ -95,8 +100,8 @@ void tryjoin_threads(struct t_pool *pool) {
         prev = curr;
         curr = curr->next;
 
-        // Perform a nonblocking join and check thread's successful termination
-        if (pthread_tryjoin_np(prev->thread, NULL) == false) {
+        // Perform a join and check thread's successful termination
+        if (pthread_join(prev->thread, NULL) == false) {
             //Remove the current node being checked from the pool and free it
             remove_node(prev);
             free(prev);
