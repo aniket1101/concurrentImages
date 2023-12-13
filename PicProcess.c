@@ -196,9 +196,8 @@
     set_pixel(pic, i, j, &pixel);
   }
 
-  blur_and_free_pixel(struct pic_info *info) {
+  void blur_and_free_pixel(struct pic_info *info) {
     blur_pixel(info);
-    
     // Free resources
     free(info);
   }
@@ -215,7 +214,7 @@
     info->j = j;
 
     // Check that the new thread can be created properly and exit otherwise
-    if (pthread_create(thread, NULL, (void *(*) (void *)) blur_pixel, info) != 0) {
+    if (pthread_create(thread, NULL, (void *(*) (void *)) blur_and_free_pixel, info) != 0) {
       // Free resources
       free(info);
       return false;
