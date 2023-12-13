@@ -3,7 +3,14 @@
 
 #include "Picture.h"
 #include "Utils.h"
-  
+
+ struct pic_info {
+  struct picture *pic;
+  struct picture *tmp;
+  int i;
+  int j;
+ };
+
   // picture transformation routines
   void invert_picture(struct picture *pic);
   void grayscale_picture(struct picture *pic);
@@ -12,5 +19,8 @@
   void blur_picture(struct picture *pic);
   void parallel_blur_picture(struct picture *pic);
 
+  // Parallelisation functions
+  bool new_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j);
+  void blur_pixel(struct pic_info *info);
 #endif
 

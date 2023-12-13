@@ -3,15 +3,16 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+// Represents a thread pool using a linked-list as a medium
 struct t_pool {
-    struct node *head;
-    struct node *tail;
+    struct node *head; /* Head of the linked list. */
+    struct node *tail; /* Tail of the linked list. */
 };
 
 struct node {
-    struct node *prev;
-    struct node *next;
-    pthread_t thread;
+    struct node *prev; /* Previous node in the linked list. */
+    struct node *next; /* Next node in the linked list. */
+    pthread_t thread;  /* Thread beloning to the current node. */
 };
 
 bool thread_pool_init(struct t_pool *t_pool);
