@@ -17,6 +17,8 @@
   void rotate_picture(struct picture *pic, int angle);
   void flip_picture(struct picture *pic, char plane);
   void blur_picture(struct picture *pic);
+  void blur_pixel(struct pic_info *info);
+  bool new_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j);
   void parallel_blur_picture(struct picture *pic);
 
 #endif

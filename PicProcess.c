@@ -1,4 +1,5 @@
 #include "PicProcess.h"
+#include "ThreadPool.h"
 
   #define NO_RGB_COMPONENTS 3
   #define BLUR_REGION_SIZE 9
@@ -163,22 +164,80 @@
     clear_picture(pic);
     overwrite_picture(pic, &tmp);
   }
+
+  void blur_pixel(struct pic_info *info) {
+    struct pixel pixel;  
+    int total_red = 0;
+    int total_green = 0;
+    int total_blue = 0;
+
+    // Apply loop to area around pixel to check rgb values
+    for(int n = -1; n <= 1; n++){
+      for(int m = -1; m <= 1; m++){
+        pixel = get_pixel(info->tmp, info->i+n, info->j+m);
+        total_red += pixel.red;
+        total_green += pixel.green;
+        total_blue += pixel.blue;
+      }
+    }
+
+    // Calculate average rgb values
+    pixel.red = total_red / BLUR_REGION_SIZE;
+    pixel.green = total_green / BLUR_REGION_SIZE;
+    pixel.blue = total_blue / BLUR_REGION_SIZE;
+
+    // Set average rgb values to complete pixel blur
+    set_pixel(info->pic, info->i, info->j, &pixel);
+
+    // Free resources
+    free(info);
+  }
+  
+  bool new_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j) {
+    struct pic_info *info = malloc(sizeof(struct pic_info));
+
+    // Assign values to new pic_info
+    info->pic = pic;
+    info->tmp = tmp;
+    info->i = i;
+    info->j = j;
+
+    // Check that the new thread can be created properly and exit otherwise
+    if (pthread_create(thread, NULL, blur_pixel, info) != 0) {
+      // Free resources
+      free(info);
+      return false;
+    }
+    return true;
+  }
   
   void parallel_blur_picture(struct picture *pic){
     // make new temporary picture to work in
-    struct picture tmp;
-    init_picture_from_size(&tmp, pic->width, pic->height);
+    struct picture *tmp;
+    tmp->img = copy_image(pic->img);
+    tmp->width = pic->width;
+    tmp->height = pic->height;
     
-    // iterate over each pixel in the picture
-    for(int i = 0 ; i < tmp.width; i++){
-      for(int j = 0 ; j < tmp.height; j++){  
-        
-        //TODO: set-up work and dispatch to a pthread
-        
+    // Initialise thread pool
+    struct t_pool *pool;
+    thread_pool_init(pool);
+
+    // iterate over each pixel in the picture, except boundary pixels
+    for(int i = 1 ; i < tmp->width - 1; i++){
+      for(int j = 1 ; j < tmp->height - 1; j++){  
+        pthread_t thread;
+
+        // Check that a new thread thread can be created
+        while(!new_thread(thread, pic, tmp, i, j)) {
+          tryjoin_threads(pool);
+        }
+        add_thread_to_pool(thread, pool);
       }
-    }    
+    } 
+
+    threads_join(pool);   
     
     // clean-up the old picture and replace with new picture
     clear_picture(pic);
-    overwrite_picture(pic, &tmp);
+    overwrite_picture(pic, tmp);
   }
