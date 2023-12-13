@@ -3,7 +3,14 @@
 
 #include "Picture.h"
 #include "Utils.h"
-  
+
+ struct pic_info {
+  struct picture *pic;
+  struct picture *tmp;
+  int i;
+  int j;
+ };
+
   // picture transformation routines
   void invert_picture(struct picture *pic);
   void grayscale_picture(struct picture *pic);
