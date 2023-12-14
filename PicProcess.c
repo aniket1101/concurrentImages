@@ -313,7 +313,9 @@
   /* Blurs the picture by creating a thread for every column. */
   void col_blur_picture(struct picture *pic) {
     struct picture tmp;
-    init_picture_from_size(&tmp, pic->width, pic->height);
+    tmp.img = copy_image(pic->img);
+    tmp.width = pic->width;
+    tmp.height = pic->height;
 
     // Initialise  thread pool.
     struct t_pool pool;
@@ -339,7 +341,9 @@
   /* Blurs the picture by creating a thread for every row. */
   void row_blur_picture(struct picture *pic) {
       struct picture tmp;
-      init_picture_from_size(&tmp, pic->width, pic->height);
+      tmp.img = copy_image(pic->img);
+      tmp.width = pic->width;
+      tmp.height = pic->height;
 
       // Initialise  thread pool.
       struct t_pool pool;
@@ -365,7 +369,9 @@
   /* Blurs the picture by creating a thread for every quarter. */
   void quarter_blur_picture(struct picture *pic) {
       struct picture tmp;
-      init_picture_from_size(&tmp, pic->width, pic->height);
+      tmp.img = copy_image(pic->img);
+      tmp.width = pic->width;
+      tmp.height = pic->height;
 
       // Get important points of the picture
 
