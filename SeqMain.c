@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include "Picture.h"
 #include "PicProcess.h"
+#include "BlurExprmt.c"
 
   // list of all possible picture transformations
   static char *cmd_strings[] = { 
