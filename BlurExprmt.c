@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#include <time.h>
+#include <sys/time.h>
 #include "Utils.h"
 #include "Picture.h"
 #include "PicProcess.h"
 
 // ---------- MAIN PROGRAM ---------- \\
 
-#define FROM_MILLIS 1000
+#define THOUSAND 1000
 
 static void blur_func(void (*partition_func) (struct picture *pic));
 
@@ -25,10 +25,10 @@ static void blur_func(void (*partition_func) (struct picture *pic));
     printf("Blurring by column takes:\n");
     blur_func(&col_blur_picture);
 
-    printf("Blurring  by row takes:\n");
+    printf("Blurring by row takes:\n");
     blur_func(&row_blur_picture);
 
-    printf("Blur picture by quarter took on average:\n");
+    printf("Blurring by each quarter takes:\n");
     blur_func(&quarter_blur_picture);
   }
 
@@ -44,8 +44,8 @@ static void blur_func(void (*partition_func) (struct picture *pic)) {
         gettimeofday(&start, NULL);
         partition_func(&pic);
         gettimeofday(&stop, NULL);
-        avg_time += (stop.tv_sec - start.tv_sec) * FROM_MILLIS +
-                    (stop.tv_usec - start.tv_usec) / FROM_MILLIS;
+        avg_time += (stop.tv_sec - start.tv_sec) * THOUSAND +
+                    (stop.tv_usec - start.tv_usec) / THOUSAND;
     }
 
     // Compute average time by dividing by number of tests
