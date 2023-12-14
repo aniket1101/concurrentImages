@@ -12,24 +12,24 @@
 #define NO_QUARTERS 4
 #define THOUSAND 1000
 
-struct pic_info {
-struct picture *pic;
-struct picture *tmp;
-int i;
-int j;
-int initi;
-int initj;
-int endi;
-int endj;
+static struct pic_info {
+  struct picture *pic;
+  struct picture *tmp;
+  int i;
+  int j;
+  int initi;
+  int initj;
+  int endi;
+  int endj;
 };
 
 // Represents a thread pool using a linked-list as a medium
-struct t_pool {
+static struct t_pool {
   struct node *head; /* Head of the linked list. */
   struct node *tail; /* Tail of the linked list. */
 };
 
-struct node {
+static struct node {
   struct node *prev; /* Previous node in the linked list. */
   struct node *next; /* Next node in the linked list. */
   pthread_t thread;  /* Thread beloning to the current node. */
@@ -37,43 +37,42 @@ struct node {
 
 static void blur_func(void (*partition_func) (struct picture *pic));
 
-bool thread_pool_init(struct t_pool *pool);
-struct node *create_node(pthread_t thread);
-void remove_node(struct node *node);
-bool add_thread_to_pool(pthread_t thread, struct t_pool *pool);
-void threads_join(struct t_pool *pool);
-void tryjoin_threads(struct t_pool *pool);
+static bool thread_pool_init(struct t_pool *pool);
+static struct node *create_node(pthread_t thread);
+static void remove_node(struct node *node);
+static bool add_thread_to_pool(pthread_t thread, struct t_pool *pool);
+static void threads_join(struct t_pool *pool);
+static void tryjoin_threads(struct t_pool *pool);
 
 // picture transformation routines
-void invert_picture(struct picture *pic);
-void grayscale_picture(struct picture *pic);
-void rotate_picture(struct picture *pic, int angle);
-void flip_picture(struct picture *pic, char plane);
-void blur_picture(struct picture *pic);
-void blur_pixel(struct pic_info *info);
+static void invert_picture(struct picture *pic);
+static void grayscale_picture(struct picture *pic);
+static void rotate_picture(struct picture *pic, int angle);
+static void flip_picture(struct picture *pic, char plane);
+static void blur_picture(struct picture *pic);
+static void blur_pixel(struct pic_info *info);
 
 // Parallelisation functions
-void parallel_blur_picture(struct picture *pic);
 
-void parallel_blur_picture(struct picture *pic);
-bool new_pixel_thread(pthread_t *thread, struct picture *pic,
+static void parallel_blur_picture(struct picture *pic);
+static bool new_pixel_thread(pthread_t *thread, struct picture *pic,
                     struct picture *tmp, int i, int j);
-void blur_and_free_pixel(struct pic_info *info);
+static void blur_and_free_pixel(struct pic_info *info);
 
-void row_blur_picture(struct picture *pic);
-bool new_row_thread(pthread_t *thread, struct picture *pic,
+static void row_blur_picture(struct picture *pic);
+static bool new_row_thread(pthread_t *thread, struct picture *pic,
                   struct picture *tmp, int j);
-void blur_and_free_row(struct pic_info *info);
+static void blur_and_free_row(struct pic_info *info);
 
-void col_blur_picture(struct picture *pic);
-bool new_col_thread(pthread_t *thread, struct picture *pic,
+static void col_blur_picture(struct picture *pic);
+static bool new_col_thread(pthread_t *thread, struct picture *pic,
                   struct picture *tmp, int i);
-void blur_and_free_col(struct pic_info *info);
+static void blur_and_free_col(struct pic_info *info);
 
-void quarter_blur_picture(struct picture *pic);
-bool new_quarter_thread(pthread_t *thread, struct picture *pic,
+static void quarter_blur_picture(struct picture *pic);
+static bool new_quarter_thread(pthread_t *thread, struct picture *pic,
                       struct picture *tmp, const int quarters[]);
-void blur_and_free_quarter(struct pic_info *info);
+static void blur_and_free_quarter(struct pic_info *info);
 
 int main(int argc, char **argv){
 
@@ -116,7 +115,7 @@ static void blur_func(void (*partition_func) (struct picture *pic)) {
   printf("%llu milliseconds\n", avg_time);
 }
 
-void blur_picture(struct picture *pic){
+static void blur_picture(struct picture *pic){
   // make new temporary picture to work in
   struct picture tmp;
   init_picture_from_size(&tmp, pic->width, pic->height);
@@ -165,7 +164,7 @@ void blur_picture(struct picture *pic){
 }
 
 // Blur an individual pixel (and hence its surrounding area)
-void blur_pixel(struct pic_info *info) {
+static void blur_pixel(struct pic_info *info) {
   struct picture *pic = info->pic;
   struct picture *tmp = info->tmp;
   int i = info->i;
@@ -199,7 +198,7 @@ void blur_pixel(struct pic_info *info) {
 
 /* Create a new thread according to specified parameters and passing in a
     pic_info as the argument for the thread. To be used for a pixel. */
-bool new_pixel_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j) {
+static bool new_pixel_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j) {
   struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info
@@ -219,7 +218,7 @@ bool new_pixel_thread(pthread_t *thread, struct picture *pic, struct picture *tm
 
 /* Create a new thread according to specified parameters and passing in a
   pic_info as the argument for the thread. To be used for a row. */
-bool new_row_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int j) {
+static bool new_row_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int j) {
   struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info 
@@ -238,7 +237,7 @@ bool new_row_thread(pthread_t *thread, struct picture *pic, struct picture *tmp,
 
 /* Create a new thread according to specified parameters and passing in a
 pic_info as the argument for the thread. To be used for a column. */
-bool new_col_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i) {
+static bool new_col_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i) {
   struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info 
@@ -255,7 +254,7 @@ bool new_col_thread(pthread_t *thread, struct picture *pic, struct picture *tmp,
   return true;
 } 
 
-bool new_quarter_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, const int quarters[]) {
+static bool new_quarter_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, const int quarters[]) {
   struct pic_info *info = malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info 
@@ -278,7 +277,7 @@ bool new_quarter_thread(pthread_t *thread, struct picture *pic, struct picture *
 
 /* BLUR FUNCTIONS */
 
-void parallel_blur_picture(struct picture *pic){
+static void parallel_blur_picture(struct picture *pic){
   // make new temporary picture to work in
   struct picture tmp;
   tmp.img = copy_image(pic->img);
@@ -309,7 +308,7 @@ void parallel_blur_picture(struct picture *pic){
 }
 
 /* Blurs the picture by creating a thread for every column. */
-void col_blur_picture(struct picture *pic) {
+static void col_blur_picture(struct picture *pic) {
   struct picture tmp;
   tmp.img = copy_image(pic->img);
   tmp.width = pic->width;
@@ -337,7 +336,7 @@ void col_blur_picture(struct picture *pic) {
 }
 
 /* Blurs the picture by creating a thread for every row. */
-void row_blur_picture(struct picture *pic) {
+static void row_blur_picture(struct picture *pic) {
     struct picture tmp;
     tmp.img = copy_image(pic->img);
     tmp.width = pic->width;
@@ -365,7 +364,7 @@ void row_blur_picture(struct picture *pic) {
 }
 
 /* Blurs the picture by creating a thread for every quarter. */
-void quarter_blur_picture(struct picture *pic) {
+static void quarter_blur_picture(struct picture *pic) {
     struct picture tmp;
     tmp.img = copy_image(pic->img);
     tmp.width = pic->width;
@@ -409,13 +408,13 @@ void quarter_blur_picture(struct picture *pic) {
 /* BLUR AND FREE FUNCTIONS */
 
 /* Blurs a pixel and then frees it. */
-void blur_and_free_pixel(struct pic_info *info) {
+static void blur_and_free_pixel(struct pic_info *info) {
   blur_pixel(info);
   free(info);
 }
 
 /* Blurs a column and then frees it. */
-void blur_and_free_col(struct pic_info *info) {
+static void blur_and_free_col(struct pic_info *info) {
   struct picture *tmp = info->tmp;
 
   // Blurs every individual pixel in the column
@@ -427,7 +426,7 @@ void blur_and_free_col(struct pic_info *info) {
 }
 
 /* Blurs a row and then frees it. */
-void blur_and_free_row(struct pic_info *info) {
+static void blur_and_free_row(struct pic_info *info) {
   struct picture *tmp = info->tmp;
 
   // Blurs every individual pixel in the row
@@ -439,7 +438,7 @@ void blur_and_free_row(struct pic_info *info) {
 }
 
 /* Blurs a quarter and then frees it. */
-void blur_and_free_quarter(struct pic_info *info) {
+static void blur_and_free_quarter(struct pic_info *info) {
 
   for (int i = info->initi; i < info->endi; i++) {
       for (int j = info->initj; j < info->endj; j++) {
