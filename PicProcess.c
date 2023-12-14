@@ -263,8 +263,8 @@
     // Assign values to new pic_info 
     info->pic = pic;
     info->tmp = tmp;
-    info->starti = quarters[0];
-    info->startj = quarters[1];
+    info->initi = quarters[0];
+    info->initj = quarters[1];
     info->endi = quarters[2];
     info->endj = quarters[3];
 
@@ -443,8 +443,8 @@ void blur_and_free_row(struct pic_info *info) {
 /* Blurs a quarter and then frees it. */
 void blur_and_free_quarter(struct pic_info *info) {
 
-    for (int i = info->starti; i < info->endi; i++) {
-        for (int j = info->startj; j < info->endj; j++) {
+    for (int i = info->initi; i < info->endi; i++) {
+        for (int j = info->initj; j < info->endj; j++) {
             // Blurs every pixel in every quarter
             info->i = i;
             info->j = j;

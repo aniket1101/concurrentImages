@@ -10,8 +10,8 @@
   struct picture *tmp;
   int i;
   int j;
-  int starti;
-  int startj;
+  int initi;
+  int initj;
   int endi;
   int endj;
  };
