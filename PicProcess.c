@@ -166,56 +166,8 @@
     overwrite_picture(pic, &tmp);
   }
 
-  void blur_picture(struct picture *pic){
-    // make new temporary picture to work in
-    struct picture tmp;
-    init_picture_from_size(&tmp, pic->width, pic->height);
-
-    // iterate over each pixel in the picture
-    for(int i = 0 ; i < tmp.width; i++){
-      for(int j = 0 ; j < tmp.height; j++){
-      
-        // set-up a local pixel on the stack
-        struct pixel rgb = get_pixel(pic, i, j);
-        
-        // don't need to modify boundary pixels
-        if(i != 0 && j != 0 && i != tmp.width - 1 && j != tmp.height - 1){
-        
-          // set up running RGB component totals for pixel region
-          int sum_red = rgb.red;
-          int sum_green = rgb.green;
-          int sum_blue = rgb.blue;
-      
-          // check the surrounding pixel region
-          for(int n = -1; n <= 1; n++){
-            for(int m = -1; m <= 1; m++){
-              if(n != 0 || m != 0){
-                rgb = get_pixel(pic, i+n, j+m);
-                sum_red += rgb.red;
-                sum_green += rgb.green;
-                sum_blue += rgb.blue;
-              }
-            }
-          }
-      
-          // compute average pixel RGB value
-          rgb.red = sum_red / BLUR_REGION_SIZE;
-          rgb.green = sum_green / BLUR_REGION_SIZE;
-          rgb.blue = sum_blue / BLUR_REGION_SIZE;
-        }
-      
-        // set pixel to computed region RBG value (unmodified if boundary)
-        set_pixel(&tmp, i, j, &rgb);
-      }
-    }
-    
-    // clean-up the old picture and replace with new picture
-    clear_picture(pic);
-    overwrite_picture(pic, &tmp);
-  }
-
   // Blur an individual pixel (and hence its surrounding area)
-  static void blur_pixel(struct pic_info *info) {
+  void blur_pixel(struct pic_info *info) {
     struct picture *pic = info->pic;
     struct picture *tmp = info->tmp;
     int i = info->i;
