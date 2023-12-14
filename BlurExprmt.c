@@ -12,7 +12,7 @@
 #define NO_QUARTERS 4
 #define THOUSAND 1000
 
-static struct pic_info {
+struct pic_info {
   struct picture *pic;
   struct picture *tmp;
   int i;
@@ -24,12 +24,12 @@ static struct pic_info {
 };
 
 // Represents a thread pool using a linked-list as a medium
-static struct t_pool {
+struct t_pool {
   struct node *head; /* Head of the linked list. */
   struct node *tail; /* Tail of the linked list. */
 };
 
-static struct node {
+struct node {
   struct node *prev; /* Previous node in the linked list. */
   struct node *next; /* Next node in the linked list. */
   pthread_t thread;  /* Thread beloning to the current node. */
@@ -37,6 +37,7 @@ static struct node {
 
 static void blur_func(void (*partition_func) (struct picture *pic));
 
+// Thread Pool Functions
 static bool thread_pool_init(struct t_pool *pool);
 static struct node *create_node(pthread_t thread);
 static void remove_node(struct node *node);
@@ -44,16 +45,11 @@ static bool add_thread_to_pool(pthread_t thread, struct t_pool *pool);
 static void threads_join(struct t_pool *pool);
 static void tryjoin_threads(struct t_pool *pool);
 
-// picture transformation routines
-static void invert_picture(struct picture *pic);
-static void grayscale_picture(struct picture *pic);
-static void rotate_picture(struct picture *pic, int angle);
-static void flip_picture(struct picture *pic, char plane);
+// Picture transformation routines
 static void blur_picture(struct picture *pic);
 static void blur_pixel(struct pic_info *info);
 
 // Parallelisation functions
-
 static void parallel_blur_picture(struct picture *pic);
 static bool new_pixel_thread(pthread_t *thread, struct picture *pic,
                     struct picture *tmp, int i, int j);
@@ -94,6 +90,8 @@ int main(int argc, char **argv){
   blur_func(&quarter_blur_picture);
 }
 
+/* Takes in various partition implementation functions and returns the average 
+   time taken for it to blur a provided image across 100 test cases. */
 static void blur_func(void (*partition_func) (struct picture *pic)) {
   long long avg_time = 0;
   struct timeval start, stop;
@@ -115,6 +113,7 @@ static void blur_func(void (*partition_func) (struct picture *pic)) {
   printf("%llu milliseconds\n", avg_time);
 }
 
+/* Sequentially blurs a picture. */
 static void blur_picture(struct picture *pic){
   // make new temporary picture to work in
   struct picture tmp;
@@ -163,7 +162,7 @@ static void blur_picture(struct picture *pic){
   overwrite_picture(pic, &tmp);
 }
 
-// Blur an individual pixel (and hence its surrounding area)
+/* Blur an individual pixel (and hence its surrounding area). */
 static void blur_pixel(struct pic_info *info) {
   struct picture *pic = info->pic;
   struct picture *tmp = info->tmp;
@@ -194,7 +193,7 @@ static void blur_pixel(struct pic_info *info) {
   set_pixel(pic, i, j, &pixel);
 }
 
-/* THREAD CREATION FUNCTIONS */
+/* =============THREAD CREATION FUNCTIONS============= */
 
 /* Create a new thread according to specified parameters and passing in a
     pic_info as the argument for the thread. To be used for a pixel. */
@@ -275,7 +274,7 @@ static bool new_quarter_thread(pthread_t *thread, struct picture *pic, struct pi
 }
 
 
-/* BLUR FUNCTIONS */
+/* =============BLUR FUNCTIONS============= */
 
 static void parallel_blur_picture(struct picture *pic){
   // make new temporary picture to work in
@@ -405,7 +404,7 @@ static void quarter_blur_picture(struct picture *pic) {
 }
 
 
-/* BLUR AND FREE FUNCTIONS */
+/* =============BLUR AND FREE FUNCTIONS============= */
 
 /* Blurs a pixel and then frees it. */
 static void blur_and_free_pixel(struct pic_info *info) {

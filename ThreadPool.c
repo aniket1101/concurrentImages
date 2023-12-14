@@ -1,6 +1,5 @@
-#include <stdlib.h>
-#include <pthread.h>
-#include <stdbool.h>
+#define _GNU_SOURCE
+#define __USE_GNU
 #include "ThreadPool.h"
 
 // Initalise a thread pool by assigning basic members
