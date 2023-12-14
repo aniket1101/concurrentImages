@@ -12,15 +12,17 @@
 #define NO_QUARTERS 4
 #define THOUSAND 1000
 
+/* Contains all the necessary information about a picture to apply various
+   partition implementations on it. */
 struct pic_info {
-  struct picture *pic;
-  struct picture *tmp;
-  int i;
-  int j;
-  int initi;
-  int initj;
-  int endi;
-  int endj;
+  struct picture *pic;      /* The picture itself. */
+  struct picture *tmp;      /* A temporary holder picture. */
+  int i;                    /* The number of rows. */
+  int j;                    /* The number of columns. */
+  int initi;                /* The starting row for quarter. */
+  int initj;                /* The starting column for quarter. */
+  int endi;                 /* The ending row for quarter. */
+  int endj;                 /* The ending column for quarter. */
 };
 
 // Represents a thread pool using a linked-list as a medium
@@ -35,6 +37,7 @@ struct node {
   pthread_t thread;  /* Thread beloning to the current node. */
 };
 
+// Function to calculate average time taken of algorithms
 static void blur_func(void (*partition_func) (struct picture *pic));
 
 // Thread Pool Functions
@@ -49,7 +52,7 @@ static void tryjoin_threads(struct t_pool *pool);
 static void blur_picture(struct picture *pic);
 static void blur_pixel(struct pic_info *info);
 
-// Parallelisation functions
+// Parallelisation functions: blurring, thread and freeing
 static void parallel_blur_picture(struct picture *pic);
 static bool new_pixel_thread(pthread_t *thread, struct picture *pic,
                     struct picture *tmp, int i, int j);
@@ -102,6 +105,7 @@ static void blur_func(void (*partition_func) (struct picture *pic)) {
   for (int i = 0; i < 100; i++) {
       init_picture_from_file(&pic, "test_images/frank.jpg");
       gettimeofday(&start, NULL);
+      printf("Running blur picture number %d\n", i+1);
       partition_func(&pic);
       gettimeofday(&stop, NULL);
       avg_time += (stop.tv_sec - start.tv_sec) * THOUSAND +
@@ -112,6 +116,8 @@ static void blur_func(void (*partition_func) (struct picture *pic)) {
   avg_time /= 100;
   printf("%llu milliseconds\n", avg_time);
 }
+
+/* =============SUPPLEMNTARY INFORMATION BELOW=============*/
 
 /* Sequentially blurs a picture. */
 static void blur_picture(struct picture *pic){
@@ -197,7 +203,8 @@ static void blur_pixel(struct pic_info *info) {
 
 /* Create a new thread according to specified parameters and passing in a
     pic_info as the argument for the thread. To be used for a pixel. */
-static bool new_pixel_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i, int j) {
+static bool new_pixel_thread(pthread_t *thread, struct picture *pic,
+                             struct picture *tmp, int i, int j) {
   struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info
@@ -207,7 +214,8 @@ static bool new_pixel_thread(pthread_t *thread, struct picture *pic, struct pict
   info->j = j;
 
   // Check that the new thread can be created properly and exit otherwise
-  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_pixel, info) != 0) {
+  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_pixel,
+                                                                  info) != 0) {
     // Free resources
     free(info);
     return false;
@@ -217,7 +225,8 @@ static bool new_pixel_thread(pthread_t *thread, struct picture *pic, struct pict
 
 /* Create a new thread according to specified parameters and passing in a
   pic_info as the argument for the thread. To be used for a row. */
-static bool new_row_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int j) {
+static bool new_row_thread(pthread_t *thread, struct picture *pic,
+                           struct picture *tmp, int j) {
   struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info 
@@ -226,7 +235,8 @@ static bool new_row_thread(pthread_t *thread, struct picture *pic, struct pictur
   info->j = j;
 
   // Check that the new thread can be created properly and exit otherwise
-  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_row, info) != 0) {
+  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_row,
+                                                                  info) != 0) {
     // Free resources
     free(info);
     return false;
@@ -236,7 +246,8 @@ static bool new_row_thread(pthread_t *thread, struct picture *pic, struct pictur
 
 /* Create a new thread according to specified parameters and passing in a
 pic_info as the argument for the thread. To be used for a column. */
-static bool new_col_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, int i) {
+static bool new_col_thread(pthread_t *thread, struct picture *pic,
+                           struct picture *tmp, int i) {
   struct pic_info *info = (struct pic_info*) malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info 
@@ -245,7 +256,8 @@ static bool new_col_thread(pthread_t *thread, struct picture *pic, struct pictur
   info->i = i;
 
   // Check that the new thread can be created properly and exit otherwise
-  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_col, info) != 0) {
+  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_col,
+                                                                  info) != 0) {
     // Free resources
     free(info);
     return false;
@@ -253,7 +265,8 @@ static bool new_col_thread(pthread_t *thread, struct picture *pic, struct pictur
   return true;
 } 
 
-static bool new_quarter_thread(pthread_t *thread, struct picture *pic, struct picture *tmp, const int quarters[]) {
+static bool new_quarter_thread(pthread_t *thread, struct picture *pic,
+                               struct picture *tmp, const int quarters[]) {
   struct pic_info *info = malloc(sizeof(struct pic_info));
 
   // Assign values to new pic_info 
@@ -265,7 +278,8 @@ static bool new_quarter_thread(pthread_t *thread, struct picture *pic, struct pi
   info->endj = quarters[3];
 
   // Check that the new thread can be created properly and exit otherwise 
-  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_quarter, info) != 0) {
+  if (pthread_create(thread, NULL, (void *(*)(void *)) blur_and_free_quarter, 
+                                                                  info) != 0) {
     // Free resources
     free(info);
     return false;
@@ -409,6 +423,7 @@ static void quarter_blur_picture(struct picture *pic) {
 /* Blurs a pixel and then frees it. */
 static void blur_and_free_pixel(struct pic_info *info) {
   blur_pixel(info);
+  // Free resources
   free(info);
 }
 
@@ -421,6 +436,7 @@ static void blur_and_free_col(struct pic_info *info) {
       info->j = col;
       blur_pixel(info);
   }
+  // Free resources
   free(info);
 }
 
@@ -433,6 +449,7 @@ static void blur_and_free_row(struct pic_info *info) {
       info->i = row;
       blur_pixel(info);
   }
+  // Free resources
   free(info);
 }
 
@@ -447,5 +464,6 @@ static void blur_and_free_quarter(struct pic_info *info) {
           blur_pixel(info);
       }
   }
+  //Free resources
   free(info);
 }
