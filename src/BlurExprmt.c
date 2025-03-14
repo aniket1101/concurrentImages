@@ -103,7 +103,7 @@ static void blur_func(void (*partition_func) (struct picture *pic)) {
   /* Loops 100 times to see how long each partition implementation takes 
       to blur. */
   for (int i = 0; i < 100; i++) {
-      init_picture_from_file(&pic, "test_images/frank.jpg");
+      init_picture_from_file(&pic, "../test_images/frank.jpg");
       gettimeofday(&start, NULL);
       printf("Running blur picture number %d\n", i+1);
       partition_func(&pic);

@@ -6,7 +6,7 @@
   int main(int argc, char ** argv){
   
     if(argc != 3){
-      printf("usage: ./picture_compare <file_path_1> <file_path_2>\n");
+      printf("usage: ../picture_compare <file_path_1> <file_path_2>\n");
       return 1;
     }
   
